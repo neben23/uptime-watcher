@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -19,9 +18,9 @@ class CheckResultOut(BaseModel):
 
     id: int
     is_up: bool
-    status_code: Optional[int]
-    response_time_ms: Optional[float]
-    error_message: Optional[str]
+    status_code: int | None
+    response_time_ms: float | None
+    error_message: str | None
     checked_at: datetime
 
 
@@ -41,4 +40,4 @@ class ServiceStatus(BaseModel):
     """Statut résumé d'un service (dernier check)."""
 
     service: ServiceOut
-    last_check: Optional[CheckResultOut]
+    last_check: CheckResultOut | None

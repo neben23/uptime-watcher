@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -34,9 +33,9 @@ class CheckResult(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     service_id: Mapped[int] = mapped_column(ForeignKey("services.id"))
     is_up: Mapped[bool]
-    status_code: Mapped[Optional[int]]
-    response_time_ms: Mapped[Optional[float]]
-    error_message: Mapped[Optional[str]]
+    status_code: Mapped[int | None]
+    response_time_ms: Mapped[float | None]
+    error_message: Mapped[str | None]
     checked_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow
     )

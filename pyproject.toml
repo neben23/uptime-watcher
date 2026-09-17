@@ -1,0 +1,7 @@
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+# B008 : FastAPI utilise volontairement Depends() en valeur par défaut,
+# c'est le pattern officiel du framework, pas une erreur.
+ignore = ["B008"]

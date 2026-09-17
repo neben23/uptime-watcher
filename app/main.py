@@ -1,5 +1,4 @@
 from contextlib import asynccontextmanager
-from typing import List
 
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy import select
@@ -41,7 +40,7 @@ def create_service(payload: schemas.ServiceCreate, db: Session = Depends(get_db)
     return service
 
 
-@app.get("/services", response_model=List[schemas.ServiceOut])
+@app.get("/services", response_model=list[schemas.ServiceOut])
 def list_services(db: Session = Depends(get_db)):
     """Liste tous les services surveillés."""
     return db.execute(select(models.Service)).scalars().all()
@@ -92,7 +91,7 @@ def get_status(service_id: int, db: Session = Depends(get_db)):
 
 
 @app.get(
-    "/services/{service_id}/history", response_model=List[schemas.CheckResultOut]
+    "/services/{service_id}/history", response_model=list[schemas.CheckResultOut]
 )
 def get_history(service_id: int, db: Session = Depends(get_db)):
     """Historique complet des checks pour un service."""
