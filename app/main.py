@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from typing import List
 
 from fastapi import Depends, FastAPI, HTTPException
@@ -5,12 +6,28 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from . import checker, models, schemas
-from .database import Base, engine, get_db
+from . import scheduler as scheduler_module
+from .database import Base, SessionLocal, engine, get_db
 
 # Crée les tables SQLite si elles n'existent pas encore
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Uptime Watcher", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup : on planifie un check périodique pour chaque service existant
+    db = SessionLocal()
+    try:
+        existing_services = db.execute(select(models.Service)).scalars().all()
+        scheduler_module.start(list(existing_services))
+    finally:
+        db.close()
+    yield
+    # Shutdown : on arrête proprement le scheduler
+    scheduler_module.scheduler.shutdown(wait=False)
+
+
+app = FastAPI(title="Uptime Watcher", version="0.1.0", lifespan=lifespan)
 
 
 @app.post("/services", response_model=schemas.ServiceOut, status_code=201)
@@ -20,6 +37,7 @@ def create_service(payload: schemas.ServiceCreate, db: Session = Depends(get_db)
     db.add(service)
     db.commit()
     db.refresh(service)
+    scheduler_module.schedule_service(service)
     return service
 
 
@@ -46,6 +64,7 @@ def delete_service(service_id: int, db: Session = Depends(get_db)):
     service = _get_service_or_404(service_id, db)
     db.delete(service)
     db.commit()
+    scheduler_module.unschedule_service(service_id)
 
 
 @app.post("/services/{service_id}/check", response_model=schemas.CheckResultOut)
