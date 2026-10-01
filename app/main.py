@@ -32,7 +32,7 @@ app = FastAPI(title="Uptime Watcher", version="0.1.0", lifespan=lifespan)
 @app.post("/services", response_model=schemas.ServiceOut, status_code=201)
 def create_service(payload: schemas.ServiceCreate, db: Session = Depends(get_db)):
     """Ajoute un nouveau service à surveiller."""
-    service = models.Service(**payload.model_dump())
+    service = models.Service(**payload.model_dump(mode="json"))
     db.add(service)
     db.commit()
     db.refresh(service)
@@ -64,6 +64,22 @@ def delete_service(service_id: int, db: Session = Depends(get_db)):
     db.delete(service)
     db.commit()
     scheduler_module.unschedule_service(service_id)
+
+
+@app.patch("/services/{service_id}", response_model=schemas.ServiceOut)
+def update_service(
+    service_id: int, payload: schemas.ServiceUpdate, db: Session = Depends(get_db)
+):
+    """Modifie un service (nom, URL, intervalle) et re-planifie ses checks."""
+    service = _get_service_or_404(service_id, db)
+    for field, value in payload.model_dump(mode="json", exclude_unset=True).items():
+        setattr(service, field, value)
+    db.commit()
+    db.refresh(service)
+    # replace_existing=True dans schedule_service : le job garde le
+    # nouvel intervalle, sans doublon.
+    scheduler_module.schedule_service(service)
+    return service
 
 
 @app.post("/services/{service_id}/check", response_model=schemas.CheckResultOut)

@@ -13,6 +13,7 @@ Une API REST légère pour surveiller la disponibilité de services HTTP (sites,
 ## Fonctionnalités
 
 - Ajouter/lister/supprimer des services à surveiller (URL + intervalle de check configurable)
+- Modifier un service (nom, URL, intervalle) sans perdre l'historique
 - Check manuel à la demande
 - Check automatique en arrière-plan, à l'intervalle défini par service
 - Dernier statut connu (up/down, code HTTP, temps de réponse)
@@ -52,6 +53,14 @@ curl -X POST http://127.0.0.1:8000/services \
 curl http://127.0.0.1:8000/services
 ```
 
+**Modifier un service (ex : passer l'intervalle à 300 s) :**
+
+```bash
+curl -X PATCH http://127.0.0.1:8000/services/1 \
+  -H "Content-Type: application/json" \
+  -d '{"check_interval_seconds": 300}'
+```
+
 **Déclencher un check manuel :**
 
 ```bash
@@ -78,6 +87,7 @@ curl http://127.0.0.1:8000/services/1/history
 | GET     | `/services`                  | Lister tous les services                  |
 | GET     | `/services/{id}`             | Détail d'un service                       |
 | DELETE  | `/services/{id}`             | Supprimer un service                      |
+| PATCH   | `/services/{id}`             | Modifier un service (re-planifie ses checks) |
 | POST    | `/services/{id}/check`       | Déclencher un check immédiat              |
 | GET     | `/services/{id}/status`      | Statut + dernier check connu              |
 | GET     | `/services/{id}/history`     | Historique complet des checks             |

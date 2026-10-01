@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -16,7 +16,7 @@ class Service(Base):
     url: Mapped[str]
     check_interval_seconds: Mapped[int] = mapped_column(default=60)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow
+        DateTime, default=lambda: datetime.now(timezone.utc)
     )
 
     # Un service a plusieurs résultats de check dans le temps
@@ -37,7 +37,7 @@ class CheckResult(Base):
     response_time_ms: Mapped[float | None]
     error_message: Mapped[str | None]
     checked_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow
+        DateTime, default=lambda: datetime.now(timezone.utc)
     )
 
     service: Mapped["Service"] = relationship(back_populates="checks")

@@ -1,14 +1,23 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, HttpUrl
 
 
 class ServiceCreate(BaseModel):
     """Ce que le client envoie pour créer un service."""
 
     name: str
-    url: str
+    url: HttpUrl
     check_interval_seconds: int = 60
+
+
+class ServiceUpdate(BaseModel):
+    """Champs modifiables d'un service (tous optionnels, seul ce qui est
+    envoyé est mis à jour — exclude_unset dans la route)."""
+
+    name: str | None = None
+    url: HttpUrl | None = None
+    check_interval_seconds: int | None = None
 
 
 class CheckResultOut(BaseModel):
